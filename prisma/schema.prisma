@@ -1,0 +1,228 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model comments {
+  comment_id    Int             @id @default(autoincrement())
+  property_id   Int?
+  user_id       Int?
+  comment_text  String?         @db.Text
+  created_at    DateTime?       @default(now()) @db.Timestamp(0)
+  properties    properties?     @relation(fields: [property_id], references: [property_id], onDelete: NoAction, onUpdate: NoAction, map: "comments_ibfk_1")
+  users         users?          @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "comments_ibfk_2")
+  notifications notifications[]
+
+  @@index([property_id], map: "property_id")
+  @@index([user_id], map: "user_id")
+}
+
+model notifications {
+  notification_id Int                   @id @default(autoincrement())
+  user_id         Int?
+  comment_id      Int?
+  title           String                @db.VarChar(255)
+  message         String                @db.Text
+  type            notifications_type?   @default(comment)
+  status          notifications_status? @default(unread)
+  created_at      DateTime?             @default(now()) @db.Timestamp(0)
+  updated_at      DateTime?             @default(now()) @db.Timestamp(0)
+  users           users?                @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "notifications_ibfk_1")
+  comments        comments?             @relation(fields: [comment_id], references: [comment_id], onDelete: NoAction, onUpdate: NoAction, map: "notifications_ibfk_2")
+
+  @@index([comment_id], map: "comment_id")
+  @@index([user_id], map: "user_id")
+}
+
+model properties {
+  property_id         Int                          @id @default(autoincrement())
+  name                String                       @db.VarChar(255)
+  description         String?                      @db.Text
+  public_price        Int
+  area                Float?                       @db.Float
+  status              properties_status?           @default(available)
+  thumbnail_url       String?                      @db.VarChar(255)
+  created_at          DateTime?                    @default(now()) @db.Timestamp(0)
+  updated_at          DateTime?                    @default(now()) @db.Timestamp(0)
+  cost_price          Int?
+  price_difference    Int?
+  province            String?                      @db.VarChar(255)
+  district            String?                      @db.VarChar(255)
+  ward                String?                      @db.VarChar(255)
+  coordinates         String?                      @db.VarChar(255)
+  house_direction     properties_house_direction
+  number_of_bedrooms  Int?
+  legal_status        String?                      @db.VarChar(255)
+  balcony_direction   properties_balcony_direction
+  number_of_bathrooms Int?
+  furniture           String?                      @db.VarChar(255)
+  house_number        String?                      @db.VarChar(50)
+  description_detail  String?                      @db.VarChar(255)
+  address             String?                      @db.VarChar(255)
+  comments            comments[]
+  property_images     property_images[]
+  save                save[]
+  transactions        transactions[]
+  type_properties     type_properties[]
+}
+
+model property_images {
+  image_id    Int        @id @default(autoincrement())
+  property_id Int
+  image_url   String     @db.VarChar(255)
+  uploaded_at DateTime?  @default(now()) @db.Timestamp(0)
+  properties  properties @relation(fields: [property_id], references: [property_id], onDelete: NoAction, onUpdate: NoAction, map: "property_images_ibfk_1")
+
+  @@index([property_id], map: "property_id")
+}
+
+model save {
+  user_id     Int
+  property_id Int
+  date_save   DateTime?  @db.Date
+  users       users      @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "save_ibfk_1")
+  properties  properties @relation(fields: [property_id], references: [property_id], onDelete: NoAction, onUpdate: NoAction, map: "save_ibfk_2")
+
+  @@id([user_id, property_id])
+  @@index([property_id], map: "property_id")
+}
+
+model type_properties {
+  type_properties_id   Int                                  @id @default(autoincrement())
+  property_id          Int
+  type_properties_name type_properties_type_properties_name
+  properties           properties                           @relation(fields: [property_id], references: [property_id], onDelete: NoAction, onUpdate: NoAction, map: "type_properties_ibfk_1")
+
+  @@index([property_id], map: "property_id")
+}
+
+model users {
+  user_id                                       Int             @id @default(autoincrement())
+  name                                          String          @db.VarChar(50)
+  email                                         String          @unique(map: "email") @db.VarChar(50)
+  password                                      String          @db.VarChar(255)
+  phone                                         String?         @db.VarChar(15)
+  role_name                                     users_role_name
+  face_id                                       String?         @db.VarChar(255)
+  refresh_token                                 String?         @db.Text
+  created_at                                    DateTime?       @default(now()) @db.Timestamp(0)
+  updated_at                                    DateTime?       @default(now()) @db.Timestamp(0)
+  access_token                                  String?         @db.Text
+  avartar_url                                   String?         @db.Text
+  reset_token                                   String?         @db.Text
+  comments                                      comments[]
+  notifications                                 notifications[]
+  save                                          save[]
+  transactions_transactions_moderator_idTousers transactions[]  @relation("transactions_moderator_idTousers")
+}
+
+model banners {
+  banner_id  Int       @id @default(autoincrement())
+  title      String    @db.VarChar(255)
+  image_url  String    @db.VarChar(255)
+  link_url   String?   @db.VarChar(255)
+  start_date DateTime? @default(now()) @db.Timestamp(0)
+  end_date   DateTime? @db.Timestamp(0)
+}
+
+model transactions {
+  inquiry_id                             Int                  @id @default(autoincrement())
+  property_id                            Int
+  moderator_id                           Int
+  status                                 transactions_status? @default(pending)
+  created_at                             DateTime?            @default(now()) @db.Timestamp(0)
+  updated_at                             DateTime?            @default(now()) @db.Timestamp(0)
+  properties                             properties           @relation(fields: [property_id], references: [property_id], onDelete: NoAction, onUpdate: NoAction, map: "transactions_ibfk_1")
+  users_transactions_moderator_idTousers users                @relation("transactions_moderator_idTousers", fields: [moderator_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "transactions_ibfk_3")
+
+  @@index([moderator_id], map: "moderator_id")
+  @@index([property_id], map: "property_id")
+}
+
+model daily_transactions_stats {
+  stat_id               Int       @id @default(autoincrement())
+  transaction_date      DateTime  @unique
+  transaction_total_perday Int    @default(0)
+  total_revenue_perday  Decimal   @default(0.00)
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
+}
+
+
+enum notifications_type {
+  comment
+  general
+}
+
+enum notifications_status {
+  unread
+  read
+}
+
+enum properties_status {
+  available
+  sold
+  pending
+}
+
+enum users_role_name {
+  admin
+  employee
+  user
+  moderator
+  manager
+}
+
+enum type_properties_type_properties_name {
+  C_n_h__chung_c_      @map("Căn hộ chung cư")
+  Cao__c_v_n_ph_ng     @map("Cao ốc văn phòng")
+  Trung_t_m_th__ng_m_i @map("Trung tâm thương mại")
+  Khu____th__m_i       @map("Khu đô thị mới")
+  Khu_ph_c_h_p         @map("Khu phức hợp")
+  Nh____x__h_i         @map("Nhà ở xã hội")
+  Khu_ngh__d__ng       @map("Khu nghỉ dưỡng")
+  Sinh_th_i            @map(" Sinh thái")
+  Khu_c_ng_nghi_p      @map("Khu công nghiệp")
+  Bi_t_th__li_n_k_     @map("Biệt thự liền kề")
+  Shophouse
+  Nh__m_t_ph_          @map("Nhà mặt phố")
+  D___n_kh_c           @map("Dự án khác")
+  t_bi_n               @map("Đất biển")
+  t_tr_ng_c_y_l_u_n_m  @map("Đất trồng cây lâu năm")
+  Bi_t_th_             @map("Biệt thự")
+  t_n_n                @map("Đất nền")
+  Nh__ph_              @map("Nhà phố")
+  C_n_h__cao_c_p       @map("Căn hộ cao cấp")
+}
+
+enum properties_house_direction {
+  North
+  Northeast
+  East
+  Southeast
+  South
+  Southwest
+  West
+  Northwest
+}
+
+enum properties_balcony_direction {
+  North
+  Northeast
+  East
+  Southeast
+  South
+  Southwest
+  West
+  Northwest
+}
+
+enum transactions_status {
+  pending
+  in_progress
+  completed
+}
