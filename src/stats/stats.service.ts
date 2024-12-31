@@ -31,6 +31,33 @@ export class StatsService {
       throw new Error(`Lỗi khi lấy danh sách: ${error.message}`);
     }
   }
+  async delete(userId:number,id:number){
+    try {
+      const checkAdmin = await this.prisma.users.findFirst({
+        where: {
+          user_id: userId,
+        },
+      });
   
+      if (!checkAdmin) {
+        throw new Error('User không tồn tại');
+      }
+  
+      if (checkAdmin.role_name === 'admin' || checkAdmin.role_name === 'manager') {
+        // Lấy danh sách daily_transactions_stats
+        await this.prisma.daily_transactions_stats.delete({
+          where:{
+            stat_id:Number(id)
+          }
+        });
+        return 'Delete success'; 
+      } else {
+        throw new Error('Unauthorized: Bạn không có quyền truy cập danh sách này');
+      }
+    } catch (error) {
+      throw new Error(error)
+    }
+  }
+
 
 }

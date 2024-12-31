@@ -25,7 +25,15 @@ prisma = new PrismaClient()
             status: undefined,
           }
         });
-        
+        await this.prisma.notifications.create({
+          data:{
+            user_id:userId,
+            title:'Bạn nhận được 1 dự án mới',
+            status:'unread',
+            message:'',
+            comment_id:null,
+          }
+        })
       }
       return 'Tạo thành công'
     } catch (error) {

@@ -8,16 +8,12 @@ export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
 
   // thông báo sẽ gán ở comment cho, transiaction cho moderator
-  @Post()
-  create(@Body() createNotificationDto: CreateNotificationDto) {
-    return this.notificationService.create(createNotificationDto);
-  }
-
+  
+  
   @Get()
-  findAll() {
+  findAll(){
     return this.notificationService.findAll();
   }
-
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.notificationService.findOne(+id);
